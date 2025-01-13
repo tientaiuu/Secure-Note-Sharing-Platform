@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Notes</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <a class="back-icon" id="back-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
+
+        <h1>Danh Sách Ghi Chú</h1>
+        
+        <ul class="note-list" id="note-list">
+            <!-- Ghi chú sẽ được hiển thị ở đây -->
+        </ul>
+
+        <div id="note-content" class="note-content" style="display: none;">
+            <h3>Nội Dung Ghi Chú:</h3>
+            <p id="note-text"></p>
+        </div>
+        
+        <a href="/" class="link">Quay lại trang chính</a>
+    </div>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.min.js"></script>
+    <script>
+        const username = sessionStorage.getItem("username");
+
+        if (!username) {
+            alert("Vui lòng đăng nhập để xem ghi chú.");
+            window.location.href = "/";
+        }
+
+        fetch("/get-secret", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.secretKey) {
+                const secretKey = data.secretKey;
+
+                fetch("/view-notes", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: username }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const noteList = document.getElementById("note-list");
+
+                    if (data.notes) {
+                        data.notes.forEach(note => {
+                            const listItem = document.createElement("li");
+                            const encryptedNote = CryptoJS.AES.decrypt(note.content, secretKey).toString(CryptoJS.enc.Utf8);
+                            listItem.className = "note-item";
+                            
+                            const noteText = `ID: ${note.note_id}`;
+                            
+                            // Chức năng xem note !!
+                            const viewButton = document.createElement("button");
+                            viewButton.textContent = "Xem";
+                            viewButton.className = "view-button";
+                            viewButton.addEventListener("click", () => {
+                                // Mã hóa note
+                                
+                                displayNoteContent(encryptedNote);
+                            });
+
+                            // Chức năng xóa !!
+                            const deleteButton = document.createElement("button");
+                            deleteButton.textContent = "Xóa";
+                            deleteButton.className = "delete-button";
+                            deleteButton.addEventListener("click", () => {
+                                if (confirm("Bạn có chắc chắn muốn xóa ghi chú này không?")) {
+                                    deleteNote(note.note_id);
+                                }
+                            });
+
+                            // Chức năng edit note :))
+                            const editButton = document.createElement("Button");
+                            editButton.textContent = "Sửa";
+                            editButton.className = "edit-button";
+                            editButton.addEventListener("click", () => {
+                                editNote(note.note_id, encryptedNote, secretKey);
+                            })
+                            
+                            // Chức năng share note :))
+                            const shareButton = document.createElement("Button");
+                            shareButton.textContent = "Share";
+                            shareButton.className = "share-button";
+                            shareButton.addEventListener("click", () => {
+                                shareNote(note.note_id, encryptedNote);
+                            })
+
+                            listItem.textContent = noteText;
+                            listItem.appendChild(viewButton);
+                            listItem.appendChild(deleteButton);
+                            listItem.appendChild(editButton);
+                            listItem.appendChild(shareButton);
+                            noteList.appendChild(listItem);
+                        });
+                    } else if (data.message) {
+                        noteList.textContent = data.message;
+                    }
+                })
+                .catch(error => console.error("Error fetching notes:", error));
+            }
+        });
+
+        function displayNoteContent(content) {
+            const noteContentDiv = document.getElementById("note-content");
+            const noteText = document.getElementById("note-text");
+            noteText.textContent = content || "Không tìm thấy nội dung.";
+            noteContentDiv.style.display = "block";
+        }
+
+        function deleteNote(noteId) {
+            fetch("/delete-note", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username, note_id: noteId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Xóa ghi chú thành công!");
+                    location.reload();
+                } else {
+                    alert("Không thể xóa ghi chú: " + data.message);
+                }
+            })
+            .catch(error => console.error("Error deleting note:", error));
+        }
+
+        function editNote(noteId, content, secretKey) {
+            // Tạo một form chỉnh sửa ghi chú
+            const editForm = document.createElement("form");
+            editForm.innerHTML = `
+                <textarea id="edited-note" rows="5" cols="50">${content}</textarea>
+                <button type="submit">Lưu thay đổi</button>
+                <button type="button" id="cancel-edit">Hủy</button>
+            `;
+            
+            // Hiển thị form chỉnh sửa lên màn hình
+            const noteContentDiv = document.getElementById("note-content");
+            noteContentDiv.innerHTML = ""; // Xóa nội dung hiện tại
+            noteContentDiv.appendChild(editForm);
+            noteContentDiv.style.display = "block";
+
+            // Lắng nghe sự kiện submit form chỉnh sửa
+            editForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                const editedContent = document.getElementById("edited-note").value;
+
+                // Mã hóa lại nội dung ghi chú trước khi gửi lên server
+                const encryptedEditedContent = CryptoJS.AES.encrypt(editedContent, secretKey).toString();
+
+                // Gửi yêu cầu cập nhật ghi chú
+                fetch("/edit-note", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ note_id: noteId, content: encryptedEditedContent, username: username })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Cập nhật ghi chú thành công!");
+                        location.reload(); // Làm mới trang để hiển thị ghi chú đã chỉnh sửa
+                    } else {
+                        alert("Không thể cập nhật ghi chú: " + data.message);
+                    }
+                })
+                .catch(error => console.error("Error updating note:", error));
+            });
+
+            // Hủy chỉnh sửa và quay lại trang trước
+            document.getElementById("cancel-edit").addEventListener("click", () => {
+                location.reload(); // Hoặc có thể làm ẩn form chỉnh sửa
+            });        
+        }
+
+        function shareNote(noteId, owner) {
+            // code here
+        }
+        const backIcon = document.getElementById("back-icon");
+        backIcon.addEventListener("click", (event) => {
+            event.preventDefault();
+            window.history.back();
+        });
+    </script>
+</body>
+</html>

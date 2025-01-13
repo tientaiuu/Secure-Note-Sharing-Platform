@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Ghi Chú</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <a class="back-icon" id="back-icon">
+            <!-- Biểu tượng SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
+        <h1>Quản Lý Ghi Chú</h1>
+        <p>Chào mừng, <span id="username"></span></p>
+        <button onclick="window.location.href='/view-notes'" class="btn-dashboard">Xem Ghi Chú</button>
+        <button onclick="window.location.href='/create-note'" class="btn-dashboard">Tạo Ghi Chú</button>
+        <a href="/" class="link">Quay lại trang chính</a>
+    </div>
+
+    <script>
+        // Lấy tên người dùng từ sessionStorage
+        const username = sessionStorage.getItem('username');
+        if (username) {
+            document.getElementById('username').textContent = username;
+        } else {
+            window.location.href = '/'; // Nếu không có tên người dùng, chuyển về trang chính
+        }
+        // Nút quay lại
+        const backIcon = document.getElementById("back-icon");
+        backIcon.addEventListener("click", (event) => {
+            event.preventDefault();
+            window.history.back();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        function registerUser(event) {
+            event.preventDefault(); 
+
+            // Lấy thông tin người dùng từ form
+            const username = document.querySelector('input[name="username"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+
+            // Tạo đối tượng dữ liệu JSON
+            const data = {
+                username: username,
+                password: password
+            };
+
+            // Gửi yêu cầu POST
+            fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    // Redirect hoặc xử lý khác sau khi đăng ký thành công
+                    window.location.href = '/';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Có lỗi xảy ra. Vui lòng thử lại.");
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Đăng Ký</h1>
+        <form onsubmit="registerUser(event)">
+            <input type="text" name="username" placeholder="Tên đăng nhập" required>
+            <input type="password" name="password" placeholder="Mật khẩu" required>
+            <button type="submit" class="btn">Đăng Ký</button>
+        </form>
+        <a href="/" class="link">Quay lại trang chính</a>
+    </div>
+</body>
+</html>

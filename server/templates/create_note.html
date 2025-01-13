@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Note</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <a class="back-icon" id="back-icon">
+            <!-- Biểu tượng SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
+        <h1>Tạo Ghi Chú</h1>
+        <form id="create-note-form">
+            <textarea name="note_content" id="note_content" placeholder="Nhập ghi chú của bạn" rows="5" required></textarea>
+            <button type="submit" class="btn">Lưu Ghi Chú</button>
+        </form>
+        <a href="/" class="link">Quay lại trang chính</a>
+    </div>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.min.js"></script>
+    <script>
+        document.getElementById("create-note-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const noteContent = document.getElementById("note_content").value;
+            const username = sessionStorage.getItem('username');
+            
+            if (!username) {
+                alert('Vui lòng đăng nhập trước!');
+                return;
+            }
+
+            fetch('/get-secret', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.secretKey) {
+                    const secretKey = data.secretKey;
+                    const encryptedNote = CryptoJS.AES.encrypt(noteContent, secretKey).toString();
+
+                    const requestData = {
+                        username: username,
+                        note_content: encryptedNote
+                    };
+
+                    fetch('/create-note', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            alert('Ghi chú đã được lưu thành công!');
+                        } else {
+                            alert('Có lỗi xảy ra: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra khi gửi yêu cầu.');
+                    });
+                } else {
+                    alert('Không thể lấy secret key từ server.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi gửi yêu cầu lấy secret key.');
+            });
+        });
+
+        const backIcon = document.getElementById("back-icon");
+        backIcon.addEventListener("click", (event) => {
+            event.preventDefault();
+            window.history.back();
+        });
+    </script>
+</body>
+</html>

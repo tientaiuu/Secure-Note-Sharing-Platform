@@ -1,0 +1,139 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+form input, form textarea {
+    width: 96%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+form button:hover {
+    background-color: #0056b3;
+}
+
+
+.link {
+    display: block;
+    margin: 15px 0;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+    cursor: pointer;
+}
+.btn {
+    display: block;
+    margin: 15px 0;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+    cursor: pointer;
+}
+.btn-dashboard {
+    margin: 15px 0;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+    cursor: pointer;
+}
+.link:hover, .btn:hover {
+    text-decoration: underline;
+}
+
+.note-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.note-item {
+    position: relative;
+    background: #e9ecef;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.view-button {
+    position: absolute;
+    right: 5%;
+}
+
+.delete-button {
+    position: absolute;
+    right: 15%;
+}
+
+.edit-button {
+    position: absolute;
+    right: 36%;
+}
+
+.share-button {
+    position: absolute;
+    right: 24%;
+}
+/* Đặt icon trong container */
+.back-icon {
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+    text-decoration: none;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px; /* Khoảng cách bên trong nút */
+    border: 2px solid #333; /* Bo viền với màu sắc và độ dày */
+    border-radius: 8px; /* Bo tròn góc */
+    background-color: transparent; /* Màu nền trong suốt */
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* Hiệu ứng chuyển màu khi hover */
+}
+
+.back-icon:hover {
+    background-color: #f0f0f0; /* Màu nền khi hover */
+    border-color: #007bff; /* Màu viền khi hover */
+}
+
+.back-icon svg {
+    margin-right: 5px; /* Khoảng cách giữa icon và chữ */
+}
