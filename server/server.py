@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template
 from utils import hash_password, verify_password, generate_note_url
 import json
+from datetime import datetime, timedelta
+import time
 
 # Nạp các biến môi trường từ tệp .env
 load_dotenv()
@@ -43,6 +45,32 @@ def update_note_in_db(note_id, content):
         write_database(db)
         return True
     return False
+
+# Hàm kiểm tra thời gian hết hạn của URL ghi chú
+def is_url_expired(note_id):
+    db = read_database()
+    if note_id not in db["notes"]:
+        return True  # Nếu không có ghi chú, coi như hết hạn
+    expiration_time = db["notes"][note_id].get("expiration_time")
+    if expiration_time:
+        current_time = int(time.time())  # Lấy thời gian hiện tại dưới dạng timestamp
+        return current_time > expiration_time
+    return False
+
+# Hàm gia hạn thời gian truy cập URL
+def extend_note_expiration(note_id, extension_time_minutes=30):
+    db = read_database()
+    if note_id not in db["notes"]:
+        return False  # Nếu không tìm thấy ghi chú, trả về False
+    
+    # Tính thời gian hết hạn mới (tính từ thời điểm hiện tại)
+    current_time = int(time.time())
+    new_expiration_time = current_time + (extension_time_minutes * 60)  # Thêm 30 phút (mặc định)
+    
+    # Cập nhật lại thời gian hết hạn
+    db["notes"][note_id]["expiration_time"] = new_expiration_time
+    write_database(db)
+    return True
 
 @app.route('/')
 def index():
@@ -95,19 +123,26 @@ def create_note():
         note_content = data["note_content"]
 
         db = read_database()
-        print(db)
-        print(data)
+
+        # Kiểm tra nếu người dùng không tồn tại
         if username not in db["users"]:
             return jsonify({"error": "User not found"}), 404
-
+        
+        # Tạo một note_id duy nhất cho ghi chú
         note_id = generate_note_url()
+
+        # Thêm thời gian hết hạn (1 giờ từ bây giờ)
+        expiration_time = int(time.time()) + (60 * 60)  # 1 giờ từ bây giờ
+
+        # Lưu thông tin ghi chú và thời gian hết hạn vào database
         if "notes" not in db:
             db["notes"] = {}
-
-        db["notes"][note_id] = {"owner": username, "content": note_content}
+        db["notes"][note_id] = {"owner": username, "content": note_content, "expiration_time": expiration_time}
+        # Ghi lại vào cơ sở dữ liệu
         write_database(db)
         return jsonify({"message": "Note created", "note_id": note_id}), 201
     return render_template('create_note.html')
+
 
 @app.route("/view-notes", methods=["GET", "POST"])
 def view_notes():
@@ -177,6 +212,25 @@ def edit_note():
         except Exception as e:
             return jsonify({"success": False, "message": str(e)})
     return jsonify({"success": False, "message": "Dữ liệu không hợp lệ"})
+
+
+@app.route("/extend-note", methods=["POST"])
+def extend_note():
+    data = request.json
+    note_id = data.get("note_id")
+
+    if not note_id:
+        return jsonify({"error": "Note ID is required"}), 400
+
+    # Kiểm tra nếu ghi chú đã hết hạn hay chưa
+    if is_url_expired(note_id):
+        return jsonify({"error": "Note URL has expired"}), 400
+    
+    # Gia hạn thời gian cho ghi chú
+    if extend_note_expiration(note_id):
+        return jsonify({"message": "Note expiration time extended successfully"}), 200
+    else:
+        return jsonify({"error": "Failed to extend expiration time"}), 500
 
 # @app.route("/share-note", method=["Post", "Get"])
 # def share_note():

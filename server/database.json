@@ -1,11 +1,21 @@
 {
     "users": {
-        "yusato": "$2b$12$OQifACZkyb6BZnBkUwsqremV/3C.JmtsYTlT6ZbaBPMP5CZeM/.w6"
+        "yusato": "$2b$12$OQifACZkyb6BZnBkUwsqremV/3C.JmtsYTlT6ZbaBPMP5CZeM/.w6",
+        "huutai22120318@gmail.com": "$2b$12$RkPCuRnxJUq5mY.QZY.TtOOOUmnjCbJledhSv5ZBOuc01ShyuIF0K"
     },
     "notes": {
         "ChD6UTh4": {
             "owner": "yusato",
             "content": "U2FsdGVkX19Hl9OGveIf6FHPfzU4qf2Ltgy5g2EOJoKnlHHG+uG/kvdGSO89Jkps"
+        },
+        "e39bWPmy": {
+            "owner": "huutai22120318@gmail.com",
+            "content": "U2FsdGVkX19sGoLtWjazIqI0j8e4hFxtgLfGgKjFTAA="
+        },
+        "OhBrXvI0": {
+            "owner": "huutai22120318@gmail.com",
+            "content": "U2FsdGVkX18kjNBQjHQT4strGGdHDBvXfX3kkiVlJ9Q=",
+            "expiration_time": 1737464479
         }
     }
 }
