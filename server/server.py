@@ -11,7 +11,16 @@ app = Flask(__name__)
 
 # Lấy SECRET_KEY từ biến môi trường
 SECRET_KEY = os.getenv("SECRET_KEY")
-print(SECRET_KEY)
+print("SECRET KEY: ",SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
+
+@app.route('/get-secret', methods = ['GET'])
+def get_secret():
+    if app.config.get('SECRET_KEY'):
+        return jsonify({"secretKey": app.config['SECRET_KEY']}), 200
+    else:
+        return jsonify({"error": "Secret key not found"}), 500
+    
 # Đường dẫn đến database
 DATABASE_PATH = "./server/database.json"
 
@@ -39,13 +48,8 @@ def update_note_in_db(note_id, content):
 def index():
     return render_template('index.html')
 
-@app.route('/get-secret')
-def get_secret():
-    if SECRET_KEY:
-        return jsonify({"secretKey": SECRET_KEY}), 200
-    else:
-        return jsonify({"error": "Secret key not found"}), 500
-
+    
+    
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -173,5 +177,14 @@ def edit_note():
         except Exception as e:
             return jsonify({"success": False, "message": str(e)})
     return jsonify({"success": False, "message": "Dữ liệu không hợp lệ"})
+
+# @app.route("/share-note", method=["Post", "Get"])
+# def share_note():
+#     data = request.json
+#     note_id = data["note_id"]
+#     content = data["content"]
+#     username = data["username"]
+    
+    
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
