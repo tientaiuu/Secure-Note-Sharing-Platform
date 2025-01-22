@@ -52,68 +52,84 @@
                     body: JSON.stringify({ username: username }),
                 })
                 .then(response => response.json())
-                .then(data => {
-                    const noteList = document.getElementById("note-list");
+            .then(data => {
+                const noteList = document.getElementById("note-list");
 
-                    if (data.notes) {
-                        data.notes.forEach(note => {
-                            const listItem = document.createElement("li");
-                            const encryptedNote = CryptoJS.AES.decrypt(note.content, secretKey).toString(CryptoJS.enc.Utf8);
-                            listItem.className = "note-item";
-                            
-                            const noteText = `ID: ${note.note_id}`;
-                            
-                            // Chức năng xem note !!
-                            const viewButton = document.createElement("button");
-                            viewButton.textContent = "Xem";
-                            viewButton.className = "view-button";
-                            viewButton.addEventListener("click", () => {
-                                // Mã hóa note
-                                
-                                displayNoteContent(encryptedNote);
-                            });
+                // data.notes : danh sách ghi chú
+                // data.tokens: { note_id: [token1, token2], ...}
+                const allTokens = data.tokens || {};
 
-                            // Chức năng xóa !!
-                            const deleteButton = document.createElement("button");
-                            deleteButton.textContent = "Xóa";
-                            deleteButton.className = "delete-button";
-                            deleteButton.addEventListener("click", () => {
-                                if (confirm("Bạn có chắc chắn muốn xóa ghi chú này không?")) {
-                                    deleteNote(note.note_id);
-                                }
-                            });
+                if (data.notes) {
+                    data.notes.forEach(note => {
+                        const listItem = document.createElement("li");
+                        listItem.className = "note-item";
 
-                            // Chức năng edit note :))
-                            const editButton = document.createElement("Button");
-                            editButton.textContent = "Sửa";
-                            editButton.className = "edit-button";
-                            editButton.addEventListener("click", () => {
-                                editNote(note.note_id, encryptedNote, secretKey);
-                            })
-                            
-                            // Chức năng share note :))
-                            const shareButton = document.createElement("Button");
-                            shareButton.textContent = "Share";
-                            shareButton.className = "share-button";
-                            shareButton.addEventListener("click", () => {
-                                shareNote(note.note_id, encryptedNote);
-                            })
+                        // Giải mã content
+                        const decryptedNote = CryptoJS.AES.decrypt(
+                            note.content,
+                            secretKey
+                        ).toString(CryptoJS.enc.Utf8);
 
-                            listItem.textContent = noteText;
-                            listItem.appendChild(viewButton);
-                            listItem.appendChild(deleteButton);
-                            listItem.appendChild(editButton);
-                            listItem.appendChild(shareButton);
-                            noteList.appendChild(listItem);
+                        // Tạo 1 span để hiển thị text ID
+                        const noteSpan = document.createElement("span");
+                        noteSpan.textContent = `ID: ${note.note_id}  `;
+
+                        // Nút Xem
+                        const viewButton = document.createElement("button");
+                        viewButton.textContent = "Xem";
+                        viewButton.addEventListener("click", () => displayNoteContent(decryptedNote));
+
+                        // Nút Xóa
+                        const deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Xóa";
+                        deleteButton.addEventListener("click", () => {
+                            if (confirm("Bạn có chắc muốn xóa ghi chú này không?")) {
+                                deleteNote(note.note_id);
+                            }
                         });
-                    } else if (data.message) {
-                        noteList.textContent = data.message;
-                    }
-                })
-                .catch(error => console.error("Error fetching notes:", error));
-            }
-        });
 
+                        // Nút Sửa
+                        const editButton = document.createElement("button");
+                        editButton.textContent = "Sửa";
+                        editButton.addEventListener("click", () => {
+                            editNote(note.note_id, decryptedNote, secretKey);
+                        });
+
+                        // Nút Share
+                        const shareButton = document.createElement("button");
+                        shareButton.textContent = "Share";
+                        shareButton.addEventListener("click", () => {
+                            shareNote(note.note_id, decryptedNote);
+                        });
+
+                        // Gán textContent và lần lượt append
+                        listItem.appendChild(noteSpan);       // "ID: ChD6UTh4"
+                        listItem.appendChild(viewButton);
+                        listItem.appendChild(deleteButton);
+                        listItem.appendChild(editButton);
+                        listItem.appendChild(shareButton);
+
+                        // Tìm token (nếu có)
+                        const tokensForNote = allTokens[note.note_id] || [];
+                        tokensForNote.forEach(token => {
+                            const revokeButton = document.createElement("button");
+                            revokeButton.textContent = "Revoke";
+                            revokeButton.addEventListener("click", () => {
+                                revokeLink(token);
+                            });
+                            listItem.appendChild(revokeButton);
+                        });
+
+                        noteList.appendChild(listItem);
+                    });
+                } else if (data.message) {
+                    noteList.textContent = data.message;
+                }
+            })
+            .catch(error => console.error("Error fetching notes:", error));
+        }
+    })
+    .catch(error => console.error("Error getting secret:", error));
         function displayNoteContent(content) {
             const noteContentDiv = document.getElementById("note-content");
             const noteText = document.getElementById("note-text");
@@ -182,13 +198,113 @@
 
             // Hủy chỉnh sửa và quay lại trang trước
             document.getElementById("cancel-edit").addEventListener("click", () => {
-                location.reload(); // Hoặc có thể làm ẩn form chỉnh sửa
+                location.reload();
             });        
         }
 
-        function shareNote(noteId, owner) {
-            // code here
+        function findNoteListItem(noteId) {
+            // Tìm tất cả li
+            const allLis = document.querySelectorAll("#note-list li.note-item");
+            for (let li of allLis) {
+                if (li.textContent.includes(`ID: ${noteId}`)) {
+                    return li;
+                }
+            }
+            return null;
         }
+
+
+        function shareNote(noteId, decryptedNote) {
+            // Hỏi thời gian chia sẻ
+            const durationStr = prompt("Nhập số phút chia sẻ (VD: 30):", "30");
+            if (!durationStr) return;
+
+            const requestData = {
+                note_id: noteId,
+                duration_minutes: durationStr,
+                username: username
+            };
+
+            fetch("/create-temp-link", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.share_url) {
+                    // Hiển thị link trong giao diện (thay vì copy clipboard)
+                    // Tìm phần tử <li> hoặc <div> hiển thị note để chèn link
+                    const noteItem = findNoteListItem(noteId); 
+                    // -> Hàm custom: Lấy <li> tương ứng với noteId
+
+                    if (noteItem) {
+                        // Tạo <div> hiển thị link
+                        const linkContainer = document.createElement("div");
+                        linkContainer.className = "share-link-container";
+
+                        // Tạo phần tử hiển thị URL
+                        const linkSpan = document.createElement("span");
+                        linkSpan.textContent = data.share_url;  // Gán trực tiếp URL
+                        linkSpan.className = "share-link-text";
+
+                        // Nút copy
+                        const copyButton = document.createElement("button");
+                        copyButton.textContent = "Copy Link";
+                        copyButton.addEventListener("click", () => {
+                            navigator.clipboard.writeText(data.share_url)
+                                .then(() => alert("Đã copy link vào clipboard"))
+                                .catch(err => console.error("Copy link error:", err));
+                        });
+
+                        // Append linkSpan + copyButton vào linkContainer
+                        linkContainer.appendChild(linkSpan);
+                        linkContainer.appendChild(copyButton);
+
+                        // Chèn linkContainer vào noteItem
+                        noteItem.appendChild(linkContainer);
+                    } else {
+                        alert("Share link: " + data.share_url);
+                    }
+                } else if (data.error) {
+                    alert("Có lỗi khi tạo link: " + data.error);
+                }
+            })
+            .catch(err => {
+                console.error("Error create-temp-link:", err);
+                alert("Đã xảy ra lỗi khi tạo link chia sẻ");
+            });
+        }
+
+        function revokeLink(token) {
+            // Thêm confirm để hỏi người dùng
+            const confirmation = confirm("Bạn có chắc chắn muốn hủy link chia sẻ này?");
+            if (!confirmation) {
+                // Người dùng ấn Cancel, không làm gì
+                return;
+            }
+
+            // Người dùng ấn OK => tiến hành gọi API xóa token
+            fetch("/revoke-link", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    token: token,
+                    username: username
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            })
+            .catch(err => console.error("Error revoking link:", err));
+        }
+
         const backIcon = document.getElementById("back-icon");
         backIcon.addEventListener("click", (event) => {
             event.preventDefault();

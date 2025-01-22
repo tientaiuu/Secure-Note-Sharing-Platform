@@ -46,6 +46,17 @@ form button {
     margin-bottom: 10px;
 }
 
+/* Lớp bao quanh link */
+.share-link-container {
+    margin-top: 5px;        
+    max-width: 100%;       
+    overflow-wrap: break-word;  
+  }
+  
+  .share-link-text {
+    display: block;
+  }
+  
 form button:hover {
     background-color: #0056b3;
 }

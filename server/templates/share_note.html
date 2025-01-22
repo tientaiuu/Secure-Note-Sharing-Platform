@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Share Note</title>
+  <link rel="stylesheet" href="/static/style.css">  <!-- Nếu có file style.css -->
+</head>
+<body>
+  <div class="container">
+    <!-- Nút quay lại -->
+    <a class="back-icon" id="back-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </a>
+
+    <h1>Chia Sẻ Ghi Chú</h1>
+
+    <!-- Form chia sẻ ghi chú -->
+    <form id="share-note-form">
+      <!-- Tên người nhận -->
+      <label for="recipient_username">Tên người nhận:</label>
+      <input type="text" id="recipient_username" name="recipient_username"
+             placeholder="Nhập username người nhận" required>
+
+      <!-- Danh sách ghi chú (select box) của user hiện tại -->
+      <label for="notes_select">Chọn ghi chú để chia sẻ:</label>
+      <select id="notes_select" name="notes_select" required>
+        <!-- Các option sẽ được thêm bằng JS -->
+      </select>
+
+      <button type="submit" class="btn">Chia Sẻ</button>
+    </form>
+
+    <!-- Link về trang chính -->
+    <a href="/" class="link">Quay lại trang chính</a>
+  </div>
+
+  <!-- Thư viện mã hoá (nếu cần) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Lấy username của người dùng hiện tại (đặt trong sessionStorage khi login)
+      const currentUsername = sessionStorage.getItem('username');
+      if (!currentUsername) {
+        alert('Vui lòng đăng nhập trước!');
+        return;
+      }
+
+      // Gọi API /view-notes bằng POST, gửi {username} để lấy ghi chú
+      fetch('/view-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: currentUsername })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // data có thể là { "notes": [ { "id": "xxx", "title": "..." }, ... ] }
+        if (Array.isArray(data.notes)) {
+          const notesSelect = document.getElementById('notes_select');
+          // Xoá option cũ (nếu có)
+          notesSelect.innerHTML = '';
+
+          // Tạo option mặc định
+          const placeholderOption = document.createElement('option');
+          placeholderOption.value = '';
+          placeholderOption.textContent = '-- Chọn một ghi chú --';
+          placeholderOption.disabled = true;
+          placeholderOption.selected = true;
+          notesSelect.appendChild(placeholderOption);
+
+          // Tạo option cho mỗi ghi chú
+          data.notes.forEach(note => {
+            const option = document.createElement('option');
+            option.value = note.note_id; 
+            option.textContent = note.title ? note.title : `Ghi chú #${note.note_id}`;
+            notesSelect.appendChild(option);
+          });
+    } else {
+      // Trường hợp server trả về không đúng format
+      alert('Không thể tải danh sách ghi chú!');
+    }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi tải danh sách ghi chú.');
+      });
+    });
+
+    // Xử lý nút "quay lại"
+    const backIcon = document.getElementById("back-icon");
+    backIcon.addEventListener("click", (event) => {
+      event.preventDefault();
+      window.history.back();
+    });
+
+    // Bắt sự kiện submit form chia sẻ
+    const shareForm = document.getElementById("share-note-form");
+    shareForm.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const currentUsername = sessionStorage.getItem('username');
+      if (!currentUsername) {
+        alert('Vui lòng đăng nhập trước!');
+        return;
+      }
+
+      const recipientUsername = document.getElementById("recipient_username").value.trim();
+      const selectedNoteId = document.getElementById("notes_select").value;
+
+      if (!selectedNoteId) {
+        alert('Vui lòng chọn ghi chú để chia sẻ!');
+        return;
+      }
+
+      // (Tùy nhu cầu) Gọi API /get-secret, nếu bạn vẫn muốn mô phỏng "lấy secret key"
+      fetch('/get-secret', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.secretKey) {
+          // Tùy ý bạn có thực sự mã hoá note_id hay password...
+          const secretKey = data.secretKey;
+          console.log("Đã lấy secret key từ server:", secretKey);
+
+          // Tạo payload gửi đến /share-note
+          const requestData = {
+            from_user: currentUsername,
+            to_user: recipientUsername,
+            note_id: selectedNoteId
+          };
+
+          fetch('/share-note', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+          })
+          .then(res => res.json())
+          .then(result => {
+            if (result.message) {
+              alert(result.message);  // "Note {id} has been shared with {user}"
+            } else {
+              alert('Có lỗi xảy ra: ' + (result.error || 'Unknown error'));
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi gửi yêu cầu chia sẻ ghi chú.');
+          });
+        } else {
+          alert('Không thể lấy secret key từ server.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi gửi yêu cầu lấy secret key.');
+      });
+    });
+  </script>
+</body>
+</html>
