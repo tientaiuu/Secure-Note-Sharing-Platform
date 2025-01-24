@@ -29,6 +29,7 @@
     </div>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/big-integer/1.6.51/big-integer.min.js"></script>
     <script>
         const username = sessionStorage.getItem("username");
 
@@ -130,6 +131,7 @@
         }
     })
     .catch(error => console.error("Error getting secret:", error));
+
         function displayNoteContent(content) {
             const noteContentDiv = document.getElementById("note-content");
             const noteText = document.getElementById("note-text");
@@ -202,78 +204,93 @@
             });        
         }
 
+        function modExp(base, exponent, mod) {
+            let result = 1n;
+            base = base % mod;
+            while (exponent > 0n) {
+                if (exponent % 2n == 1n) result = (result * base) % mod;
+                exponent = exponent / 2n;
+                base = (base * base) % mod;
+            }
+            return result;
+        }
+       
+        
         function findNoteListItem(noteId) {
-            // Tìm tất cả li
-            const allLis = document.querySelectorAll("#note-list li.note-item");
-            for (let li of allLis) {
-                if (li.textContent.includes(`ID: ${noteId}`)) {
-                    return li;
+            const allNotes = document.querySelectorAll(".note-item");
+            for (let note of allNotes) {
+                if (note.textContent.includes(`ID: ${noteId}`)) {
+                    return note;
                 }
             }
             return null;
         }
+        
+        function generateOrGetDHKeyPair() {
+            const P = BigInt(23);
+            const G = BigInt(5);
 
+            if (!sessionStorage.getItem("dh_private_key")) {
+                const privateKey = BigInt(Math.floor(Math.random() * Number(P - 1n) + 1));
+                sessionStorage.setItem("dh_private_key", privateKey.toString());
+            }
 
-        function shareNote(noteId, decryptedNote) {
-            // Hỏi thời gian chia sẻ
-            const durationStr = prompt("Nhập số phút chia sẻ (VD: 30):", "30");
-            if (!durationStr) return;
+            const privateKey = BigInt(sessionStorage.getItem("dh_private_key"));
+            const publicKey = modExp(G, privateKey, P);
+            
+            return { privateKey, publicKey, P, G };
+        }
 
-            const requestData = {
-                note_id: noteId,
-                duration_minutes: durationStr,
-                username: username
-            };
+        function shareNote(noteId) {
+            const duration = prompt("Thời gian chia sẻ:", "1");
+            if (!duration) return;
+
+            const { privateKey, publicKey } = generateOrGetDHKeyPair();
 
             fetch("/create-temp-link", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(requestData)
+                body: JSON.stringify({
+                    note_id: noteId,
+                    duration_minutes: duration,
+                    username: username,
+                    client_public_key: publicKey.toString()
+                })
             })
             .then(res => res.json())
             .then(data => {
                 if (data.share_url) {
-                    // Hiển thị link trong giao diện (thay vì copy clipboard)
-                    // Tìm phần tử <li> hoặc <div> hiển thị note để chèn link
-                    const noteItem = findNoteListItem(noteId); 
-                    // -> Hàm custom: Lấy <li> tương ứng với noteId
-
+                    const noteItem = findNoteListItem(noteId);
                     if (noteItem) {
-                        // Tạo <div> hiển thị link
                         const linkContainer = document.createElement("div");
                         linkContainer.className = "share-link-container";
 
-                        // Tạo phần tử hiển thị URL
+                        // Hiển thị link chia sẻ
                         const linkSpan = document.createElement("span");
-                        linkSpan.textContent = data.share_url;  // Gán trực tiếp URL
+                        linkSpan.textContent = `Link: ${data.share_url}`;
                         linkSpan.className = "share-link-text";
 
-                        // Nút copy
+                        // Nút sao chép link
                         const copyButton = document.createElement("button");
                         copyButton.textContent = "Copy Link";
-                        copyButton.addEventListener("click", () => {
-                            navigator.clipboard.writeText(data.share_url)
-                                .then(() => alert("Đã copy link vào clipboard"))
-                                .catch(err => console.error("Copy link error:", err));
-                        });
-
-                        // Append linkSpan + copyButton vào linkContainer
+                        copyButton.addEventListener("click", () => copyToClipboard(data.share_url));
+                        
                         linkContainer.appendChild(linkSpan);
                         linkContainer.appendChild(copyButton);
-
-                        // Chèn linkContainer vào noteItem
                         noteItem.appendChild(linkContainer);
-                    } else {
-                        alert("Share link: " + data.share_url);
                     }
-                } else if (data.error) {
-                    alert("Có lỗi khi tạo link: " + data.error);
+                } else {
+                    alert("Lỗi khi tạo link: " + data.error);
                 }
             })
             .catch(err => {
-                console.error("Error create-temp-link:", err);
+                console.error("Lỗi khi gọi API chia sẻ:", err);
                 alert("Đã xảy ra lỗi khi tạo link chia sẻ");
             });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
         }
 
         function revokeLink(token) {

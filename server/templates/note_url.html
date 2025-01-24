@@ -1,57 +1,92 @@
-<!-- templates/note_url.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shared Note</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <div class="container">
     <h1>Ghi Chú Chia Sẻ</h1>
-    <!-- Đoạn này server sẽ render ciphertext -->
-    <div id="ciphertext" data-ciphertext="{{ ciphertext|safe }}"></div>
     <p><strong>Note ID:</strong> {{ note_id }}</p>
     <p><strong>Owner:</strong> {{ owner }}</p>
     <hr>
-    <p id="decrypted-content">Đang giải mã nội dung...</p>
+
+    <p><strong>Khóa công khai của server:</strong> <span id="server-public-key">{{ server_public_key }}</span></p>
+    <p><strong>Khóa công khai của bạn:</strong> <span id="client-public-key">{{ client_public_key }}</span></p>
+    <br>
+    
+    <br>
+    
+    <button onclick="accessSharedNote('{{ token }}')">Xem Ghi Chú</button>
+
+    <hr>
+    <p id="decrypted-content">Nội dung ghi chú sẽ hiển thị tại đây...</p>
   </div>
 
-  <!-- Thư viện CryptoJS -->
+  <!-- Thư viện hỗ trợ mã hóa CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Lấy ciphertext từ data attribute
-      const ctDiv = document.getElementById("ciphertext");
-      const ciphertext = ctDiv.dataset.ciphertext;
 
-      // Gọi /get-secret để lấy secretKey (demo)
-      fetch("/get-secret", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.secretKey) {
-          const secretKey = data.secretKey;
-          // Giải mã
-          const decrypted = CryptoJS.AES.decrypt(ciphertext, secretKey).toString(CryptoJS.enc.Utf8);
-          const p = document.getElementById("decrypted-content");
-          if (decrypted) {
-            p.textContent = decrypted;
-          } else {
-            p.textContent = "Không thể giải mã ghi chú (hoặc ghi chú rỗng).";
-          }
-        } else {
-          alert("Không thể lấy secretKey");
+  <script>
+        const P = BigInt(23);
+        const G = BigInt(5);
+
+        function modExp(base, exponent, mod) {
+            let result = 1n;
+            base = base % mod;
+            while (exponent > 0n) {
+                if (exponent % 2n == 1n) result = (result * base) % mod;
+                exponent = exponent / 2n;
+                base = (base * base) % mod;
+            }
+            return result;
         }
-      })
-      .catch(err => {
-        console.error("Error:", err);
-        document.getElementById("decrypted-content").textContent = "Lỗi khi giải mã.";
-      });
-    });
+
+        // Lấy khóa công khai từ giao diện đã được render từ server
+        const serverPublicKey = BigInt(document.getElementById("server-public-key").textContent.trim());
+        const clientPublicKey = BigInt(document.getElementById("client-public-key").textContent.trim());
+
+        console.log("Client Public Key:", clientPublicKey.toString());
+        console.log("Server Public Key:", serverPublicKey.toString());
+
+        // Yêu cầu khóa riêng từ sessionStorage hoặc tạo mới nếu chưa có
+        if (!sessionStorage.getItem("dh_private_key")) {
+            const privateKey = BigInt(Math.floor(Math.random() * Number(P - 1n) + 1));
+            sessionStorage.setItem("dh_private_key", privateKey.toString());
+        }
+
+        const client_private_key = BigInt(sessionStorage.getItem("dh_private_key"));
+        console.log("Client Private Key:", client_private_key.toString());
+
+        const sharedSecret = modExp(serverPublicKey, client_private_key, P);
+        console.log("Client computed shared secret:", sharedSecret.toString());
+        console.log("Client Session Key:", CryptoJS.SHA256(sharedSecret.toString()).toString());
+
+        function accessSharedNote(token) {
+            fetch(`/get-note/${token}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Lỗi: " + data.error);
+                    console.log(data.error);
+                } else {
+                    // Tính toán khóa phiên và giải mã ghi chú
+                    const sharedSecret = modExp(serverPublicKey, client_private_key, P);
+                    const sessionKey = CryptoJS.SHA256(sharedSecret.toString()).toString();
+
+                    const decryptedNote = CryptoJS.AES.decrypt(data.encrypted_note, sessionKey).toString(CryptoJS.enc.Utf8);
+                    document.getElementById("decrypted-content").textContent = decryptedNote || "Không thể giải mã ghi chú.";
+                }
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("Lỗi khi lấy dữ liệu ghi chú.");
+            });
+        }
   </script>
 </body>
 </html>

@@ -1,15 +1,15 @@
-import os
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template,session, redirect, url_for
 from utils import hash_password, verify_password, generate_note_url
-import json
-import secrets
-import time
+import secrets, time, json, os, hashlib, hmac
 
 # Nạp các biến môi trường từ tệp .env
 load_dotenv()
 
 app = Flask(__name__)
+
+P = 23  # Giá trị đơn giản hóa, cần thay bằng số nguyên tố lớn hơn trong thực tế
+G = 5
 
 # Lấy SECRET_KEY từ biến môi trường
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -49,8 +49,6 @@ def update_note_in_db(note_id, content):
 @app.route('/')
 def index():
     return render_template('index.html')
-
-    
     
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -81,6 +79,8 @@ def login():
 
         if not verify_password(password, db["users"][username]):
             return jsonify({"error": "Invalid credentials"}), 401
+        
+        session["username"] = username
 
         return jsonify({"message": "Login successful"}), 200
     return render_template('login.html')
@@ -113,77 +113,153 @@ def create_note():
 
 @app.route("/create-temp-link", methods=["POST"])
 def create_temp_link():
-    # get dữ liệu người dùng
-    data = request.get_json()
-    note_id = data.get("note_id")
-    duration_minutes = data.get("duration_minutes", 60)
-    username = data.get("username")
-
-    db = read_database()
-
-    # Kiểm tra note_id hợp lệ, user có phải owner không
-    if note_id not in db["notes"]:
-        return jsonify({"error": f"Note {note_id} not found"}), 404
-
-    note_data = db["notes"][note_id]
-    if note_data["owner"] != username:
-        return jsonify({"error": "You are not the owner of this note"}), 403
-
-    # Tính thời gian hết hạn link
     try:
-        duration_minutes = int(duration_minutes)
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        note_id = data.get("note_id")
+        duration_minutes = int(data.get("duration_minutes", 60))
+        client_public_key = int(data.get("client_public_key"))
+
+        db = read_database()
+
+        # Kiểm tra xem ghi chú có tồn tại không
+        if note_id not in db.get("notes", {}):
+            return jsonify({"error": "Note không tồn tại"}), 404
+
+        expiry_time = int(time.time() + duration_minutes * 60)
+
+        if "shared_links" not in db:
+            db["shared_links"] = {}
+        
+        if "KEYS" not in db:
+            db["KEYS"] = {}
+
+        if note_id in db["KEYS"]:
+            # Lấy khóa riêng tư đã lưu
+            server_private_key = db["KEYS"][note_id]["server_private_key"]
+            server_public_key = db["KEYS"][note_id]["server_public_key"]
+        else:
+            # Tạo khóa mới và lưu vào database
+            server_private_key = secrets.randbelow(P)
+            server_public_key = pow(G, server_private_key, P)
+    
+            db["KEYS"][note_id] = {
+                "server_private_key": server_private_key,
+                "server_public_key": server_public_key,
+                "client_public_key":client_public_key      
+            }
+
+        # Tính shared secret với khóa công khai của client
+        shared_secret = pow(client_public_key, server_private_key, P)
+        session_key = hashlib.sha256(str(shared_secret).encode()).hexdigest()
+
+        print(f"[DEBUG] client public key: {client_public_key}")
+        print(f"[DEBUG] server prviate key: {server_private_key}")
+        print(f"[DEBUG] Shared Secret: {shared_secret}")
+        print(f"[DEBUG] Calculated Session Key: {session_key}")
+
+        # Tạo token chia sẻ
+        token = secrets.token_urlsafe(16)
+
+        db["shared_links"][token] = {
+            "note_id": note_id,
+            "expiry": expiry_time,
+            "session_key": session_key,
+            "server_public_key": server_public_key
+        }
+
+        write_database(db)
+
+        return jsonify({
+            "share_url": f"http://127.0.0.1:5000/share/{token}",
+            "server_public_key": server_public_key,
+            "expiry": expiry_time
+        })
+    
     except ValueError:
-        duration_minutes = 60
-    expiry_time = int(time.time() + duration_minutes*60)
-
-    # Sinh token
-    token = secrets.token_urlsafe(32)
-
-    # Lưu vào db
-    if "shared_links" not in db:
-        db["shared_links"] = {}
-    db["shared_links"][token] = {
-        "note_id": note_id,
-        "expiry": expiry_time
-    }
-    write_database(db)
-
-    share_url = f"http://127.0.0.1:5000/share/{token}"
-    return jsonify({"share_url": share_url, "expiry": expiry_time}), 200
+        return jsonify({"error": "Invalid input data"}), 400
+    
+    except Exception as e:
+        app.logger.error(f"Error processing request: {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 @app.route("/share/<token>", methods=["GET"])
 def share_note(token):
-    
+    # Kiểm tra xem người dùng đã đăng nhập hay chưa
+    if "username" not in session:
+        return redirect(url_for("login"))  # Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
+
     db = read_database()
     shared_info = db.get("shared_links", {}).get(token)
-    
-
 
     if not shared_info:
-        return render_template("notFound.html"), 410
-        
-    # Kiểm tra thời gian chia sẻ
-    now = int(time.time())
-    if now > shared_info["expiry"]:
-        del db["shared_links"][token]
+        db["shared_links"].pop(token, None)  # Xóa liên kết đã hết hạn
         write_database(db)
         return render_template("expired.html"), 410
 
-    expiry = now + shared_info["expiry"]
-    note_id = shared_info["note_id"]
-    note_data = db["notes"].get(note_id)
-    owner = note_data["owner"]
-    if not note_data:
-        return "Không tìm thấy ghi chú", 404
+    # Kiểm tra nếu thông tin khóa tồn tại
+    key_info = db.get("KEYS", {}).get(shared_info["note_id"], None)
+    if not key_info:
+        return jsonify({"error": "Khóa không tồn tại"}), 404
 
-    # Lấy ciphertext
-    ciphertext = note_data["content"]
-    # Render template note_url.html, truyền token & ciphertext
-    return render_template("note_url.html",
-                           owner = owner,
-                           expiry = expiry,
-                           note_id=note_id,
-                           ciphertext=ciphertext)
+    owner = session["username"]
+
+    return render_template(
+        "note_url.html",
+        token=token,
+        owner=owner,
+        note_id=shared_info["note_id"],
+        server_public_key=key_info["server_public_key"],  # Đảm bảo dùng đúng khóa key
+        client_public_key=key_info["client_public_key"]
+    )
+    
+@app.route("/get-note/<token>", methods=["POST"])
+def get_shared_note(token):
+    db = read_database()
+    shared_info = db.get("shared_links", {}).get(token)
+
+    if not shared_info or int(time.time()) > shared_info["expiry"]:
+        db["shared_links"].pop(token, None)  # Xóa liên kết đã hết hạn
+        write_database(db)
+        return render_template("expired.html"), 410
+
+    key_info = db.get("KEYS", {}).get(shared_info["note_id"], None)
+    if not key_info:
+        return jsonify({"error": "Không tìm thấy khóa server của ghi chú #"+ shared_info["note_id"]}), 404
+
+    client_public_key = key_info.get("client_public_key")
+    if not client_public_key:
+        return jsonify({"error": "Không tìm thấy khóa công khai của client"}), 403
+
+    try:
+        client_public_key = int(client_public_key)
+    except ValueError:
+        return jsonify({"error": "Khóa công khai không hợp lệ"}), 403
+
+
+    # Tính shared secret theo đúng thuật toán Diffie-Hellman
+    server_private_key = key_info["server_private_key"]
+    shared_secret = pow(client_public_key, server_private_key, P)
+    session_key = hashlib.sha256(str(shared_secret).encode()).hexdigest()
+    
+    print(f"--------\n[DEBUG] client public key: {client_public_key}")
+    print(f"[DEBUG] server private key: {server_private_key}")
+    print(f"[DEBUG] Shared Secret: {shared_secret}")
+    print(f"[DEBUG] Calculated Session Key: {session_key}")
+
+
+    if session_key != shared_info["session_key"]:
+        return jsonify({"error": "Sai khóa phiên"}), 403
+
+    note_id = shared_info["note_id"]
+    note_content = db["notes"][note_id]["content"]
+
+    return jsonify({
+        "encrypted_note": note_content,
+        "server_public_key": key_info["server_public_key"]
+    })
 
 @app.route("/revoke-link", methods=["POST"])
 def revoke_link():
@@ -209,56 +285,6 @@ def revoke_link():
     del db["shared_links"][token]
     write_database(db)
     return jsonify({"message": "Link chia sẻ đã bị hủy"}), 200
-
-  
-
-# @app.route("/share-note", methods=['GET', 'POST'])
-# def share_note():
-#     if request.method == 'POST':
-#         data = request.json
-#         if not data:
-#             return jsonify({"error": "No JSON data"}), 400
-        
-#         from_user = data.get("from_user")
-#         to_user   = data.get("to_user")
-#         note_id   = data.get("note_id")
-
-#         if not (from_user and to_user and note_id):
-#             return jsonify({"error": "Missing from_user / to_user / note_id"}), 400
-
-#         db = read_database()
-
-#         # Kiểm tra from_user có tồn tại không
-#         if from_user not in db["users"]:
-#             return jsonify({"error": f"User {from_user} not found"}), 404
-
-#         # Kiểm tra to_user có tồn tại không
-#         if to_user not in db["users"]:
-#             return jsonify({"error": f"User {to_user} not found"}), 404
-
-#         # Kiểm tra note_id có tồn tại không
-#         if note_id not in db["notes"]:
-#             return jsonify({"error": f"Note {note_id} not found"}), 404
-
-#         note_data = db["notes"][note_id]
-
-#         # Thêm to_user vào danh sách shared_with
-#         if "shared_with" not in note_data:
-#             note_data["shared_with"] = []
-
-#         if to_user not in note_data["shared_with"]:
-#             note_data["shared_with"].append(to_user)
-
-#         # Ghi ngược lại vào DB
-#         db["notes"][note_id] = note_data
-#         write_database(db)
-        
-#         # Kiểm tra DB, update shared_with, v.v.
-#         return jsonify({"message": f"Note {note_id} has been shared with {to_user}"}), 200
-    
-#     return render_template("share_note.html")
-
-
     
 @app.route("/view-notes", methods=["GET", "POST"])
 def view_notes():
@@ -294,13 +320,20 @@ def view_notes():
             note_tokens[note["note_id"]] = []
 
         # 3) Duyệt db["shared_links"] để tìm token nào match note_id
-        shared_links = db.get("shared_links", {})
-        now = time.time()
-        for token, info in shared_links.items():
-            note_id = info["note_id"]
-            # Nếu note_id thuộc tập note của user + link chưa hết hạn
-            if note_id in note_tokens and now < info["expiry"]:
+        if "shared_links" in db: 
+            shared_links = db.get("shared_links", {})
+            now = time.time()
+            for token, info in shared_links.items():
+                if "note_id" not in info:
+                    app.logger.error(f"Token {token} không có note_id, giá trị: {info}")
+                    continue  # Bỏ qua entry không hợp lệ
+
+                note_id = info["note_id"]
+
+            if note_id in note_tokens and now < info.get("expiry", 0):
                 note_tokens[note_id].append(token)
+                    
+            # app.logger.info(f"Shared links data: {shared_links}")
 
         # 4) Trả về JSON
         # - "notes": mảng note
