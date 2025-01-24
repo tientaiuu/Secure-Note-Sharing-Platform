@@ -230,12 +230,12 @@
             const P = BigInt(23);
             const G = BigInt(5);
 
-            if (!sessionStorage.getItem("dh_private_key")) {
+            if (!localStorage .getItem("dh_private_key")) {
                 const privateKey = BigInt(Math.floor(Math.random() * Number(P - 1n) + 1));
-                sessionStorage.setItem("dh_private_key", privateKey.toString());
+                localStorage .setItem("dh_private_key", privateKey.toString());
             }
 
-            const privateKey = BigInt(sessionStorage.getItem("dh_private_key"));
+            const privateKey = BigInt(localStorage.getItem("dh_private_key"));
             const publicKey = modExp(G, privateKey, P);
             
             return { privateKey, publicKey, P, G };

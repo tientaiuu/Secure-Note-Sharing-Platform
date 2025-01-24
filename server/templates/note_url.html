@@ -51,15 +51,16 @@
         console.log("Server Public Key:", serverPublicKey.toString());
 
         // Yêu cầu khóa riêng từ sessionStorage hoặc tạo mới nếu chưa có
-        if (!sessionStorage.getItem("dh_private_key")) {
+        if (!localStorage .getItem("dh_private_key")) {
             const privateKey = BigInt(Math.floor(Math.random() * Number(P - 1n) + 1));
-            sessionStorage.setItem("dh_private_key", privateKey.toString());
+            console.log("nó random");
+            localStorage .setItem("dh_private_key", privateKey.toString());
         }
 
-        const client_private_key = BigInt(sessionStorage.getItem("dh_private_key"));
+        const client_private_key = BigInt(localStorage.getItem("dh_private_key"));
         console.log("Client Private Key:", client_private_key.toString());
 
-        const sharedSecret = modExp(serverPublicKey, client_private_key, P);
+        const sharedSecret = (serverPublicKey**client_private_key) % P;
         console.log("Client computed shared secret:", sharedSecret.toString());
         console.log("Client Session Key:", CryptoJS.SHA256(sharedSecret.toString()).toString());
 
@@ -75,10 +76,24 @@
                     console.log(data.error);
                 } else {
                     // Tính toán khóa phiên và giải mã ghi chú
-                    const sharedSecret = modExp(serverPublicKey, client_private_key, P);
+                    const sharedSecret = (serverPublicKey**client_private_key) % P;
+                    console.log("Client shared secret trong function access:", sharedSecret.toString());
                     const sessionKey = CryptoJS.SHA256(sharedSecret.toString()).toString();
+                    const aesKey = CryptoJS.enc.Utf8.parse(sessionKey);
 
-                    const decryptedNote = CryptoJS.AES.decrypt(data.encrypted_note, sessionKey).toString(CryptoJS.enc.Utf8);
+                    console.log(sessionKey);
+                    console.log(data.encrypted_note);
+
+                    // Giải mã nội dung ghi chú bằng AES-256
+                    decryptedNote = CryptoJS.AES.decrypt({
+                        ciphertext: data.encrypted_note
+                    }, aesKey, {
+                        mode: CryptoJS.mode.ECB,
+                        padding: CryptoJS.pad.Pkcs7
+                    }).toString(CryptoJS.enc.Utf8);             
+                    
+                    decryptedNote = data.content
+
                     document.getElementById("decrypted-content").textContent = decryptedNote || "Không thể giải mã ghi chú.";
                 }
             })

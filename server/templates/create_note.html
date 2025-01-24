@@ -44,8 +44,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.secretKey) {
-                    const secretKey = data.secretKey;
-                    const encryptedNote = CryptoJS.AES.encrypt(noteContent, secretKey).toString();
+                    const secretKey = CryptoJS.enc.Utf8.parse(data.secretKey);
+                    const encryptedNote = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(noteContent), secretKey, {
+                        mode: CryptoJS.mode.ECB,  // Sử dụng chế độ ECB để đồng bộ với backend
+                        padding: CryptoJS.pad.Pkcs7
+                    }).toString();
 
                     const requestData = {
                         username: username,

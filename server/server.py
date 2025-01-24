@@ -1,7 +1,9 @@
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template,session, redirect, url_for
 from utils import hash_password, verify_password, generate_note_url
-import secrets, time, json, os, hashlib, hmac
+import secrets, time, json, os, hashlib, base64
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad, pad
 
 # Nạp các biến môi trường từ tệp .env
 load_dotenv()
@@ -13,6 +15,9 @@ G = 5
 
 # Lấy SECRET_KEY từ biến môi trường
 SECRET_KEY = os.getenv("SECRET_KEY")
+if len(SECRET_KEY) not in [16, 24, 32]:
+    raise ValueError(f"Invalid AES key length: {len(SECRET_KEY)} bytes. Must be 16, 24, or 32 bytes.")
+
 print("SECRET KEY: ",SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
@@ -255,10 +260,28 @@ def get_shared_note(token):
 
     note_id = shared_info["note_id"]
     note_content = db["notes"][note_id]["content"]
+    encrypted_content = base64.b64decode(note_content)
+    print(f"Encrypted content: {encrypted_content}")
+    
+    # Giải mã ghi chú bằng secret key ban đầu
+    try:
+        cipher = AES.new(SECRET_KEY.encode('utf-8'), AES.MODE_ECB)
+        decrypted_note = unpad(cipher.decrypt(encrypted_content), AES.block_size).decode('utf-8')        
+    except Exception as e:
+        print(f"[ERROR] Giải mã thất bại: {str(e)}")
+        return jsonify({"error": "Không thể giải mã nội dung ghi chú"}), 500
 
+    print(f"[DEBUG] Decrypted Note: {decrypted_note}")
+    hashed_key = hashlib.sha256(session_key.encode()).digest()
+
+    # Mã hóa lại bằng session key của Diffie-Hellman
+    new_cipher = AES.new(hashed_key, AES.MODE_ECB)
+    encrypted_new_content = base64.b64encode(new_cipher.encrypt(pad(decrypted_note.encode(), AES.block_size))).decode('utf-8')
+    print(f"[DEBUG] Encrypted New content: {encrypted_new_content}")
     return jsonify({
-        "encrypted_note": note_content,
-        "server_public_key": key_info["server_public_key"]
+        "encrypted_note": encrypted_new_content,
+        "server_public_key": key_info["server_public_key"],
+        "content":decrypted_note
     })
 
 @app.route("/revoke-link", methods=["POST"])
@@ -304,7 +327,7 @@ def view_notes():
         # 1) Tìm note mà user sở hữu hoặc được chia sẻ
         user_notes = []
         for note_id, note_data in db["notes"].items():
-            if note_data["owner"] == username or (note_data.get("shared_with") and username in note_data["shared_with"]):
+            if note_data["owner"] == username:
                 user_notes.append({
                     "note_id": note_id,
                     "content": note_data["content"]
@@ -327,11 +350,10 @@ def view_notes():
                 if "note_id" not in info:
                     app.logger.error(f"Token {token} không có note_id, giá trị: {info}")
                     continue  # Bỏ qua entry không hợp lệ
-
-                note_id = info["note_id"]
-
-            if note_id in note_tokens and now < info.get("expiry", 0):
-                note_tokens[note_id].append(token)
+                note_id = info["note_id"]       
+                         
+                if note_id in note_tokens and now < info.get("expiry", 0):
+                    note_tokens[note_id].append(token)
                     
             # app.logger.info(f"Shared links data: {shared_links}")
 
