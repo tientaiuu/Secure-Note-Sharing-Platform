@@ -35,7 +35,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-P = 23 
+P = 162259276829213363391578010288127   
 G = 5
 
 # Lấy SECRET_KEY từ biến môi trường

@@ -29,7 +29,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
   <script>
-        const P = BigInt(23);
+        const P = BigInt("162259276829213363391578010288127");
         const G = BigInt(5);
 
         function modExp(base, exponent, mod) {
@@ -60,7 +60,7 @@
         const client_private_key = BigInt(localStorage.getItem("dh_private_key"));
         console.log("Client Private Key:", client_private_key.toString());
 
-        const sharedSecret = (serverPublicKey**client_private_key) % P;
+        const sharedSecret = modExp(serverPublicKey,client_private_key, P);
         console.log("Client computed shared secret:", sharedSecret.toString());
         console.log("Client Session Key:", CryptoJS.SHA256(sharedSecret.toString()).toString());
 
