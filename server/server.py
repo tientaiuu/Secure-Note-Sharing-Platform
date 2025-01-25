@@ -1,9 +1,27 @@
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template,session, redirect, url_for
 from utils import hash_password, verify_password, generate_note_url
-import secrets, time, json, os, hashlib, base64
+import secrets, time, json, os, hashlib, base64, logging
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad, pad
+
+log_file_path = r'server/testing'
+
+if not os.path.exists(log_file_path):
+    os.makedirs(log_file_path)
+
+
+# Cấu hình logging để ghi vào file
+logging.basicConfig(
+    filename="app_debug.log",  # Đặt tên file log
+    level=logging.DEBUG,  # Ghi lại tất cả thông tin từ DEBUG trở lên
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filemode='a'
+)
+
+# Thay thế print bằng logging trong toàn bộ code
+def debug_log(message):
+    logging.debug(message)
 
 # Nạp các biến môi trường từ tệp .env
 load_dotenv()
@@ -57,7 +75,9 @@ def index():
     
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    debug_log("---REGISTER API---")
     if request.method == 'POST':
+        debug_log(f"[DEBUG] METHOD = {request.method}")
         data = request.json
         username = data["username"]
         password = data["password"]
@@ -68,12 +88,15 @@ def register():
 
         db["users"][username] = hash_password(password)
         write_database(db)
+        debug_log("---------------------------------------}")
         return jsonify({"message": "User registered successfully"}), 201
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    debug_log("---LOGIN API---")
     if request.method == 'POST':
+        debug_log(f"[DEBUG] METHOD = {request.method}")
         data = request.json
         username = data["username"]
         password = data["password"]
@@ -86,7 +109,7 @@ def login():
             return jsonify({"error": "Invalid credentials"}), 401
         
         session["username"] = username
-
+        debug_log("---------------------------------------}")
         return jsonify({"message": "Login successful"}), 200
     return render_template('login.html')
 
@@ -96,14 +119,16 @@ def dashboard():
 
 @app.route("/create-note", methods=['GET', 'POST'])
 def create_note():
+    debug_log("---CREATE NOTE API---")
     if request.method == 'POST':
+        debug_log(f"[DEBUG] METHOD = {request.method}")
         data = request.json
         username = data["username"]
         note_content = data["note_content"]
 
         db = read_database()
-        print(db)
-        print(data)
+        debug_log(db)
+        debug_log(data)
         if username not in db["users"]:
             return jsonify({"error": "User not found"}), 404
 
@@ -113,14 +138,18 @@ def create_note():
 
         db["notes"][note_id] = {"owner": username, "content": note_content}
         write_database(db)
+        debug_log("---------------------------------------}")
         return jsonify({"message": "Note created", "note_id": note_id}), 201
     return render_template('create_note.html')
 
 @app.route("/create-temp-link", methods=["POST"])
 def create_temp_link():
+    debug_log("---CREATE TEMP LINK API---")
     try:
+        debug_log(f"[DEBUG] METHOD = {request.method}")
         data = request.get_json()
         if not data:
+            debug_log("ERROR : Không có dữ liệu}")
             return jsonify({"error": "No data provided"}), 400
         
         note_id = data.get("note_id")
@@ -131,6 +160,7 @@ def create_temp_link():
 
         # Kiểm tra xem ghi chú có tồn tại không
         if note_id not in db.get("notes", {}):
+            debug_log("ERROR : Ghi chú không tồn tại")
             return jsonify({"error": "Note không tồn tại"}), 404
 
         expiry_time = int(time.time() + duration_minutes * 60)
@@ -160,10 +190,11 @@ def create_temp_link():
         shared_secret = pow(client_public_key, server_private_key, P)
         session_key = hashlib.sha256(str(shared_secret).encode()).hexdigest()
 
-        print(f"[DEBUG] client public key: {client_public_key}")
-        print(f"[DEBUG] server prviate key: {server_private_key}")
-        print(f"[DEBUG] Shared Secret: {shared_secret}")
-        print(f"[DEBUG] Calculated Session Key: {session_key}")
+        debug_log(f"[DEBUG] Client public key: {client_public_key}")
+        debug_log(f"[DEBUG] Server public key: {server_public_key}")
+        debug_log(f"[DEBUG] Server prviate key: {server_private_key}")
+        debug_log(f"[DEBUG] Shared Secret: {shared_secret}")
+        debug_log(f"[DEBUG] Session Key: {session_key}")
 
         # Tạo token chia sẻ
         token = secrets.token_urlsafe(16)
@@ -176,6 +207,7 @@ def create_temp_link():
         }
 
         write_database(db)
+        debug_log("---------------------------------------}")
 
         return jsonify({
             "share_url": f"http://127.0.0.1:5000/share/{token}",
@@ -187,11 +219,15 @@ def create_temp_link():
         return jsonify({"error": "Invalid input data"}), 400
     
     except Exception as e:
-        app.logger.error(f"Error processing request: {e}")
+        debug_log(f"Error processing request: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
 @app.route("/share/<token>", methods=["GET"])
 def share_note(token):
+    
+    debug_log("---SHARE NOTE API---")
+    debug_log(f"[DEBUG] METHOD = {request.method}")
+    
     # Kiểm tra xem người dùng đã đăng nhập hay chưa
     if "username" not in session:
         return redirect(url_for("login"))  # Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
@@ -207,9 +243,13 @@ def share_note(token):
     # Kiểm tra nếu thông tin khóa tồn tại
     key_info = db.get("KEYS", {}).get(shared_info["note_id"], None)
     if not key_info:
+        debug_log(f"[DEBUG] Khóa không tồn tại")
         return jsonify({"error": "Khóa không tồn tại"}), 404
+    
 
     owner = session["username"]
+    
+    debug_log("---------------------------------------}")
 
     return render_template(
         "note_url.html",
@@ -222,6 +262,10 @@ def share_note(token):
     
 @app.route("/get-note/<token>", methods=["POST"])
 def get_shared_note(token):
+    
+    debug_log("---GET SHARE NOTE API---")
+    debug_log(f"[DEBUG] METHOD = {request.method}")
+    
     db = read_database()
     shared_info = db.get("shared_links", {}).get(token)
 
@@ -232,15 +276,18 @@ def get_shared_note(token):
 
     key_info = db.get("KEYS", {}).get(shared_info["note_id"], None)
     if not key_info:
+        debug_log("ERROR : Không tìm thấy khóa server của ghi chú")
         return jsonify({"error": "Không tìm thấy khóa server của ghi chú #"+ shared_info["note_id"]}), 404
 
     client_public_key = key_info.get("client_public_key")
     if not client_public_key:
+        debug_log("ERROR : Không tìm thấy khóa công khai của client}")
         return jsonify({"error": "Không tìm thấy khóa công khai của client"}), 403
 
     try:
         client_public_key = int(client_public_key)
     except ValueError:
+        debug_log("ERROR : Khóa công khai không hợp lệ")
         return jsonify({"error": "Khóa công khai không hợp lệ"}), 403
 
 
@@ -249,35 +296,40 @@ def get_shared_note(token):
     shared_secret = pow(client_public_key, server_private_key, P)
     session_key = hashlib.sha256(str(shared_secret).encode()).hexdigest()
     
-    print(f"--------\n[DEBUG] client public key: {client_public_key}")
-    print(f"[DEBUG] server private key: {server_private_key}")
-    print(f"[DEBUG] Shared Secret: {shared_secret}")
-    print(f"[DEBUG] Calculated Session Key: {session_key}")
+    debug_log(f"[DEBUG] Client public key: {client_public_key}")
+    debug_log(f"[DEBUG] Server prviate key: {server_private_key}")
+    debug_log(f"[DEBUG] Shared Secret: {shared_secret}")
+    debug_log(f"[DEBUG] Session Key: {session_key}")
 
 
     if session_key != shared_info["session_key"]:
+        debug_log("ERROR : SAI KHÓA PHIÊN}")
         return jsonify({"error": "Sai khóa phiên"}), 403
 
     note_id = shared_info["note_id"]
     note_content = db["notes"][note_id]["content"]
     encrypted_content = base64.b64decode(note_content)
-    print(f"Encrypted content: {encrypted_content}")
+    
+    debug_log(f"[DEBUG] Encrypted content: {encrypted_content}")
     
     # Giải mã ghi chú bằng secret key ban đầu
     try:
         cipher = AES.new(SECRET_KEY.encode('utf-8'), AES.MODE_ECB)
-        decrypted_note = unpad(cipher.decrypt(encrypted_content), AES.block_size).decode('utf-8')        
+        decrypted_note = unpad(cipher.decrypt(encrypted_content), AES.block_size).decode('utf-8')  
     except Exception as e:
-        print(f"[ERROR] Giải mã thất bại: {str(e)}")
+        debug_log(f"[ERROR] Giải mã thất bại: {str(e)}")
         return jsonify({"error": "Không thể giải mã nội dung ghi chú"}), 500
 
     print(f"[DEBUG] Decrypted Note: {decrypted_note}")
-    hashed_key = hashlib.sha256(session_key.encode()).digest()
+    hashed_key = hashlib.sha256(str(shared_secret).encode()).digest()
 
     # Mã hóa lại bằng session key của Diffie-Hellman
     new_cipher = AES.new(hashed_key, AES.MODE_ECB)
     encrypted_new_content = base64.b64encode(new_cipher.encrypt(pad(decrypted_note.encode(), AES.block_size))).decode('utf-8')
+    
     print(f"[DEBUG] Encrypted New content: {encrypted_new_content}")
+    debug_log("---------------------------------------}")
+    
     return jsonify({
         "encrypted_note": encrypted_new_content,
         "server_public_key": key_info["server_public_key"],
@@ -286,6 +338,11 @@ def get_shared_note(token):
 
 @app.route("/revoke-link", methods=["POST"])
 def revoke_link():
+    
+    debug_log("---rEVOKE SHARE LINK API---")
+    debug_log(f"[DEBUG] METHOD = {request.method}")
+
+    
     data = request.json
     token = data.get("token")
     username = data.get("username")
@@ -293,25 +350,33 @@ def revoke_link():
     db = read_database()
     shared_info = db.get("shared_links", {}).get(token, None)
     if not shared_info:
+        debug_log(f"ERROR : TOKEN KHÔNG TỒN TẠI HOẶC ĐÃ BỊ XÓA")
         return jsonify({"error": "Token không tồn tại hoặc đã xóa"}), 404
 
     # Kiểm tra chủ sở hữu
     note_id = shared_info["note_id"]
     note_data = db["notes"].get(note_id)
     if not note_data:
+        debug_log(f"ERROR : GHI CHÚ KHÔNG TỒN TẠI")
         return jsonify({"error": "Note không tồn tại"}), 404
 
     if note_data["owner"] != username:
+        debug_log(f"ERROR : NGƯỜI DÙNG {username} KHÔNG PHẢI CHỦ GHI CHÚ")
         return jsonify({"error": "Bạn không phải chủ ghi chú"}), 403
 
     # Xóa token
     del db["shared_links"][token]
     write_database(db)
+    
+    debug_log("---------------------------------------}")
     return jsonify({"message": "Link chia sẻ đã bị hủy"}), 200
     
 @app.route("/view-notes", methods=["GET", "POST"])
 def view_notes():
+    debug_log("---VIEW NOTE API---")
+    
     if request.method == "POST":
+        debug_log(f"[DEBUG] METHOD = {request.method}")
         # Lấy dữ liệu request
         if request.is_json:
             data = request.json
@@ -334,6 +399,7 @@ def view_notes():
                 })
 
         if not user_notes:
+            debug_log("[DEBUG] NGƯỜI DÙNG {username} KHÔNG CÓ GHI CHÚ NÀO")
             return jsonify({"message": "No notes found for this user"}), 404
 
         # 2) Tạo dict để lưu danh sách token theo note
@@ -360,6 +426,7 @@ def view_notes():
         # 4) Trả về JSON
         # - "notes": mảng note
         # - "tokens": dict { note_id: [token1, token2, ...] }
+        debug_log("---------------------------------------}")
         return jsonify({
             "notes": user_notes,
             "tokens": note_tokens
@@ -370,13 +437,19 @@ def view_notes():
 
 @app.route("/delete-note", methods=["POST"])
 def delete_note():
+    debug_log("---DELETE NOTE API---")
+    debug_log(f"[DEBUG] METHOD = {request.method}")
+
     data = request.json
     username = data["username"]
     note_id = data["note_id"]
     db = read_database()
 
     if not username or not note_id:
+        debug_log(f"ERROR : Thiếu thông tin username hoặc note_id")
         return jsonify({"success": False, "message": "Thiếu thông tin username hoặc note_id"}), 400
+    
+    debug_log("---------------------------------------}")
     try:
         if note_id in db["notes"]:
             note = db["notes"][note_id]
@@ -396,6 +469,10 @@ def delete_note():
 
 @app.route("/edit-note", methods=["POST"])
 def edit_note():
+    
+    debug_log("---EDIT NOTE API---")
+    debug_log(f"[DEBUG] METHOD = {request.method}")
+
     data = request.json
     note_id = data["note_id"]
     content = data["content"]
@@ -409,6 +486,8 @@ def edit_note():
             return jsonify({"success": True})
         except Exception as e:
             return jsonify({"success": False, "message": str(e)})
+        
+    debug_log("---------------------------------------}")
     return jsonify({"success": False, "message": "Dữ liệu không hợp lệ"})
 
 if __name__ == "__main__":

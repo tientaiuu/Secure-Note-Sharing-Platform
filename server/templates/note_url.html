@@ -75,22 +75,20 @@
                     alert("Lỗi: " + data.error);
                     console.log(data.error);
                 } else {
-                    // Tính toán khóa phiên và giải mã ghi chú
-                    const sharedSecret = (serverPublicKey**client_private_key) % P;
-                    console.log("Client shared secret trong function access:", sharedSecret.toString());
                     const sessionKey = CryptoJS.SHA256(sharedSecret.toString()).toString();
-                    const aesKey = CryptoJS.enc.Utf8.parse(sessionKey);
+                    const aesKey = CryptoJS.enc.Hex.parse(sessionKey);
 
-                    console.log(sessionKey);
-                    console.log(data.encrypted_note);
+                    console.log("Session Key:", sessionKey);
+                    console.log("AES Key:", aesKey.toString());
 
-                    // Giải mã nội dung ghi chú bằng AES-256
-                    decryptedNote = CryptoJS.AES.decrypt({
-                        ciphertext: data.encrypted_note
-                    }, aesKey, {
-                        mode: CryptoJS.mode.ECB,
-                        padding: CryptoJS.pad.Pkcs7
-                    }).toString(CryptoJS.enc.Utf8);             
+                    decryptedNote = CryptoJS.AES.decrypt(
+                        CryptoJS.enc.Base64.parse(data.encrypted_note), 
+                        aesKey, 
+                        {
+                            mode: CryptoJS.mode.ECB,
+                            padding: CryptoJS.pad.Pkcs7
+                        }
+                    ).toString(CryptoJS.enc.Utf8);          
                     
                     decryptedNote = data.content
 
