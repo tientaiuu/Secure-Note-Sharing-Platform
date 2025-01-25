@@ -7,9 +7,10 @@ from Crypto.Util.Padding import unpad, pad
 
 # Lấy đường dẫn tuyệt đối đến thư mục hiện tại
 current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
 
 # Đường dẫn tuyệt đối đến thư mục 'server/testing'
-log_directory = os.path.join(current_dir, 'test')
+log_directory = os.path.join(parent_dir, 'test')
 
 # Tạo thư mục nếu chưa tồn tại
 if not os.path.exists(log_directory):
