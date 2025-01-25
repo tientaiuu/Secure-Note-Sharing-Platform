@@ -572,3 +572,58 @@
 2025-01-25 16:29:50,002 - DEBUG - [DEBUG] Encrypted content: b'e\xdf\xa0E\x88\xc1\xd7\xe5\xf0t\xef~\x84\xe8\xbaE'
 2025-01-25 16:29:50,002 - DEBUG - ---------------------------------------}
 2025-01-25 16:29:50,002 - INFO - 127.0.0.1 - - [25/Jan/2025 16:29:50] "POST /get-note/02u-UhrkfzvWskB7M3RIHw HTTP/1.1" 200 -
+2025-01-25 17:08:57,154 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-01-25 17:08:57,154 - INFO - [33mPress CTRL+C to quit[0m
+2025-01-25 17:08:57,161 - INFO -  * Restarting with stat
+2025-01-25 17:08:57,745 - WARNING -  * Debugger is active!
+2025-01-25 17:08:57,753 - INFO -  * Debugger PIN: 141-791-563
+2025-01-25 17:09:04,757 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:09:04,822 - INFO - 127.0.0.1 - - [25/Jan/2025 17:09:04] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:09:04,993 - INFO - 127.0.0.1 - - [25/Jan/2025 17:09:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:09:06,350 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:09:06,350 - INFO - 127.0.0.1 - - [25/Jan/2025 17:09:06] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:09:06,430 - INFO - 127.0.0.1 - - [25/Jan/2025 17:09:06] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:09:08,471 - INFO - 127.0.0.1 - - [25/Jan/2025 17:09:08] "GET /get-secret HTTP/1.1" 200 -
+2025-01-25 17:09:08,552 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:09:08,552 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:09:08,552 - DEBUG - ---------------------------------------}
+2025-01-25 17:09:08,552 - INFO - 127.0.0.1 - - [25/Jan/2025 17:09:08] "POST /view-notes HTTP/1.1" 200 -
+2025-01-25 17:09:59,779 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:09:59,835 - INFO - 127.0.0.1 - - [25/Jan/2025 17:09:59] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:09:59,946 - INFO - 127.0.0.1 - - [25/Jan/2025 17:09:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:10:00,032 - INFO - 127.0.0.1 - - [25/Jan/2025 17:10:00] "GET /get-secret HTTP/1.1" 200 -
+2025-01-25 17:10:00,109 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:10:00,109 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:10:00,110 - DEBUG - ---------------------------------------}
+2025-01-25 17:10:00,110 - INFO - 127.0.0.1 - - [25/Jan/2025 17:10:00] "POST /view-notes HTTP/1.1" 200 -
+2025-01-25 17:10:17,902 - DEBUG - ---EDIT NOTE API---
+2025-01-25 17:10:17,902 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:10:17,902 - INFO - 127.0.0.1 - - [25/Jan/2025 17:10:17] "POST /edit-note HTTP/1.1" 200 -
+2025-01-25 17:10:19,542 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:10:19,542 - INFO - 127.0.0.1 - - [25/Jan/2025 17:10:19] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:10:19,636 - INFO - 127.0.0.1 - - [25/Jan/2025 17:10:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:10:19,715 - INFO - 127.0.0.1 - - [25/Jan/2025 17:10:19] "GET /get-secret HTTP/1.1" 200 -
+2025-01-25 17:10:19,799 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:10:19,799 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:10:19,809 - DEBUG - ---------------------------------------}
+2025-01-25 17:10:19,809 - INFO - 127.0.0.1 - - [25/Jan/2025 17:10:19] "POST /view-notes HTTP/1.1" 200 -
+2025-01-25 17:11:59,338 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:11:59,416 - INFO - 127.0.0.1 - - [25/Jan/2025 17:11:59] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:11:59,504 - INFO - 127.0.0.1 - - [25/Jan/2025 17:11:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:11:59,616 - INFO - 127.0.0.1 - - [25/Jan/2025 17:11:59] "GET /get-secret HTTP/1.1" 200 -
+2025-01-25 17:11:59,701 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:11:59,701 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:11:59,701 - DEBUG - ---------------------------------------}
+2025-01-25 17:11:59,701 - INFO - 127.0.0.1 - - [25/Jan/2025 17:11:59] "POST /view-notes HTTP/1.1" 200 -
+2025-01-25 17:12:14,640 - DEBUG - ---EDIT NOTE API---
+2025-01-25 17:12:14,640 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:12:14,648 - INFO - 127.0.0.1 - - [25/Jan/2025 17:12:14] "POST /edit-note HTTP/1.1" 200 -
+2025-01-25 17:12:15,786 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:12:15,786 - INFO - 127.0.0.1 - - [25/Jan/2025 17:12:15] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:12:15,869 - INFO - 127.0.0.1 - - [25/Jan/2025 17:12:15] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:12:17,814 - INFO - 127.0.0.1 - - [25/Jan/2025 17:12:17] "GET /get-secret HTTP/1.1" 200 -
+2025-01-25 17:12:17,894 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:12:17,894 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:12:17,925 - DEBUG - ---------------------------------------}
+2025-01-25 17:12:17,925 - INFO - 127.0.0.1 - - [25/Jan/2025 17:12:17] "POST /view-notes HTTP/1.1" 200 -

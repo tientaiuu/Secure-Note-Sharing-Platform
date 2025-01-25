@@ -67,7 +67,7 @@
                         listItem.className = "note-item";
 
                         // Giải mã content
-                        en_secretkey = CryptoJS.enc.Utf8.parse(secretKey)
+                        en_secretkey = CryptoJS.enc.Utf8.parse(secretKey);
                         encrypted_content = CryptoJS.enc.Base64.parse(note.content);
                         console.log("content "+note.content);
                         const decryptedNote = CryptoJS.AES.decrypt(
@@ -103,7 +103,7 @@
                         const editButton = document.createElement("button");
                         editButton.textContent = "Sửa";
                         editButton.addEventListener("click", () => {
-                            editNote(note.note_id, decryptedNote, secretKey);
+                            editNote(note.note_id, decryptedNote, en_secretkey);
                         });
 
                         // Nút Share
@@ -189,7 +189,11 @@
                 const editedContent = document.getElementById("edited-note").value;
 
                 // Mã hóa lại nội dung ghi chú trước khi gửi lên server
-                const encryptedEditedContent = CryptoJS.AES.encrypt(editedContent, secretKey).toString();
+
+                const encryptedEditedContent = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(editedContent), secretKey, {
+                    mode: CryptoJS.mode.ECB,  // Sử dụng chế độ ECB để đồng bộ với backend
+                    padding: CryptoJS.pad.Pkcs7
+                }).toString();
 
                 // Gửi yêu cầu cập nhật ghi chú
                 fetch("/edit-note", {
