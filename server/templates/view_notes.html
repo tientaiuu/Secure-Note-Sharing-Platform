@@ -45,7 +45,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.secretKey) {
-                const secretKey = data.secretKey;
+                secretKey = data.secretKey;
 
                 fetch("/view-notes", {
                     method: "POST",
@@ -61,15 +61,25 @@
                 const allTokens = data.tokens || {};
 
                 if (data.notes) {
+                    console.log("Hoạt động")
                     data.notes.forEach(note => {
                         const listItem = document.createElement("li");
                         listItem.className = "note-item";
 
                         // Giải mã content
+                        en_secretkey = CryptoJS.enc.Utf8.parse(secretKey)
+                        encrypted_content = CryptoJS.enc.Base64.parse(note.content);
+                        console.log("content "+note.content);
                         const decryptedNote = CryptoJS.AES.decrypt(
-                            note.content,
-                            secretKey
-                        ).toString(CryptoJS.enc.Utf8);
+                            note.content,  
+                            en_secretkey,
+                            {
+                                mode: CryptoJS.mode.ECB,  
+                                padding: CryptoJS.pad.Pkcs7  
+                            }
+                        ).toString(CryptoJS.enc.Utf8);                        
+                        
+                        console.log("giải "+ decryptedNote);
 
                         // Tạo 1 span để hiển thị text ID
                         const noteSpan = document.createElement("span");
@@ -135,6 +145,7 @@
         function displayNoteContent(content) {
             const noteContentDiv = document.getElementById("note-content");
             const noteText = document.getElementById("note-text");
+            console.log("nội dung"+content)
             noteText.textContent = content || "Không tìm thấy nội dung.";
             noteContentDiv.style.display = "block";
         }

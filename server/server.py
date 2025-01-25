@@ -28,7 +28,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-P = 23  # Giá trị đơn giản hóa, cần thay bằng số nguyên tố lớn hơn trong thực tế
+P = 23 
 G = 5
 
 # Lấy SECRET_KEY từ biến môi trường

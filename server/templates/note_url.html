@@ -76,13 +76,13 @@
                     console.log(data.error);
                 } else {
                     const sessionKey = CryptoJS.SHA256(sharedSecret.toString()).toString();
-                    const aesKey = CryptoJS.enc.Hex.parse(sessionKey);
+                    const aesKey = CryptoJS.enc.Utf8.parse(sessionKey);
 
                     console.log("Session Key:", sessionKey);
                     console.log("AES Key:", aesKey.toString());
 
                     decryptedNote = CryptoJS.AES.decrypt(
-                        CryptoJS.enc.Base64.parse(data.encrypted_note), 
+                        data.encrypted_note, 
                         aesKey, 
                         {
                             mode: CryptoJS.mode.ECB,
@@ -90,7 +90,7 @@
                         }
                     ).toString(CryptoJS.enc.Utf8);          
                     
-                    decryptedNote = data.content
+                    //decryptedNote = data.content;
 
                     document.getElementById("decrypted-content").textContent = decryptedNote || "Không thể giải mã ghi chú.";
                 }
