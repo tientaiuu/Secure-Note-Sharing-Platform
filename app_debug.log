@@ -627,3 +627,138 @@
 2025-01-25 17:12:17,894 - DEBUG - [DEBUG] METHOD = POST
 2025-01-25 17:12:17,925 - DEBUG - ---------------------------------------}
 2025-01-25 17:12:17,925 - INFO - 127.0.0.1 - - [25/Jan/2025 17:12:17] "POST /view-notes HTTP/1.1" 200 -
+2025-01-25 17:52:27,140 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-01-25 17:52:27,140 - INFO - [33mPress CTRL+C to quit[0m
+2025-01-25 17:52:27,140 - INFO -  * Restarting with stat
+2025-01-25 17:52:27,596 - WARNING -  * Debugger is active!
+2025-01-25 17:52:27,609 - INFO -  * Debugger PIN: 141-791-563
+2025-01-25 17:52:31,210 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:52:31,285 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:31] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:52:31,399 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:52:32,638 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:32] "GET /get-secret HTTP/1.1" 200 -
+2025-01-25 17:52:32,708 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:52:32,708 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:52:32,710 - DEBUG - ---------------------------------------}
+2025-01-25 17:52:32,711 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:32] "POST /view-notes HTTP/1.1" 200 -
+2025-01-25 17:52:37,305 - DEBUG - ---CREATE TEMP LINK API---
+2025-01-25 17:52:37,305 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:52:37,305 - DEBUG - [DEBUG] Client public key: 17
+2025-01-25 17:52:37,305 - DEBUG - [DEBUG] Server public key: 6
+2025-01-25 17:52:37,305 - DEBUG - [DEBUG] Server prviate key: 18
+2025-01-25 17:52:37,305 - DEBUG - [DEBUG] Shared Secret: 3
+2025-01-25 17:52:37,305 - DEBUG - [DEBUG] Session Key: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+2025-01-25 17:52:37,305 - DEBUG - ---------------------------------------}
+2025-01-25 17:52:37,305 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:37] "POST /create-temp-link HTTP/1.1" 200 -
+2025-01-25 17:52:43,607 - DEBUG - ---SHARE NOTE API---
+2025-01-25 17:52:43,607 - DEBUG - [DEBUG] METHOD = GET
+2025-01-25 17:52:43,613 - DEBUG - ---------------------------------------}
+2025-01-25 17:52:43,661 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:43] "GET /share/WAeLSpIAFYqZvxA9JcgWYg HTTP/1.1" 200 -
+2025-01-25 17:52:43,759 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:52:44,952 - DEBUG - ---GET SHARE NOTE API---
+2025-01-25 17:52:44,952 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:52:44,952 - DEBUG - [DEBUG] Client public key: 17
+2025-01-25 17:52:44,952 - DEBUG - [DEBUG] Server prviate key: 18
+2025-01-25 17:52:44,952 - DEBUG - [DEBUG] Shared Secret: 3
+2025-01-25 17:52:44,952 - DEBUG - [DEBUG] Session Key: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+2025-01-25 17:52:44,952 - DEBUG - [DEBUG] Encrypted content: b'\x19\x9d[\x95,\xe0mQ\xc2_\xf6\n\x18J#<\x1f\x04\xb2\xe6^\x18U\x174\xa8\x94\xcb\xb2\xea\xb0u'
+2025-01-25 17:52:44,952 - DEBUG - ---------------------------------------}
+2025-01-25 17:52:44,952 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:44] "POST /get-note/WAeLSpIAFYqZvxA9JcgWYg HTTP/1.1" 200 -
+2025-01-25 17:52:56,439 - DEBUG - ---SHARE NOTE API---
+2025-01-25 17:52:56,439 - DEBUG - [DEBUG] METHOD = GET
+2025-01-25 17:52:56,439 - DEBUG - ---------------------------------------}
+2025-01-25 17:52:56,468 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:56] "GET /share/WAeLSpIAFYqZvxA9JcgWYg HTTP/1.1" 200 -
+2025-01-25 17:52:56,520 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:52:56,732 - DEBUG - ---SHARE NOTE API---
+2025-01-25 17:52:56,732 - DEBUG - [DEBUG] METHOD = GET
+2025-01-25 17:52:56,732 - DEBUG - ---------------------------------------}
+2025-01-25 17:52:56,732 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:56] "GET /share/WAeLSpIAFYqZvxA9JcgWYg HTTP/1.1" 200 -
+2025-01-25 17:52:56,772 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:52:57,650 - DEBUG - ---GET SHARE NOTE API---
+2025-01-25 17:52:57,650 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:52:57,650 - DEBUG - [DEBUG] Client public key: 17
+2025-01-25 17:52:57,650 - DEBUG - [DEBUG] Server prviate key: 18
+2025-01-25 17:52:57,650 - DEBUG - [DEBUG] Shared Secret: 3
+2025-01-25 17:52:57,650 - DEBUG - [DEBUG] Session Key: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+2025-01-25 17:52:57,650 - DEBUG - [DEBUG] Encrypted content: b'\x19\x9d[\x95,\xe0mQ\xc2_\xf6\n\x18J#<\x1f\x04\xb2\xe6^\x18U\x174\xa8\x94\xcb\xb2\xea\xb0u'
+2025-01-25 17:52:57,650 - DEBUG - ---------------------------------------}
+2025-01-25 17:52:57,650 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:57] "POST /get-note/WAeLSpIAFYqZvxA9JcgWYg HTTP/1.1" 200 -
+2025-01-25 17:52:58,484 - DEBUG - ---GET SHARE NOTE API---
+2025-01-25 17:52:58,484 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:52:58,484 - DEBUG - [DEBUG] Client public key: 17
+2025-01-25 17:52:58,484 - DEBUG - [DEBUG] Server prviate key: 18
+2025-01-25 17:52:58,484 - DEBUG - [DEBUG] Shared Secret: 3
+2025-01-25 17:52:58,484 - DEBUG - [DEBUG] Session Key: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+2025-01-25 17:52:58,484 - DEBUG - [DEBUG] Encrypted content: b'\x19\x9d[\x95,\xe0mQ\xc2_\xf6\n\x18J#<\x1f\x04\xb2\xe6^\x18U\x174\xa8\x94\xcb\xb2\xea\xb0u'
+2025-01-25 17:52:58,484 - DEBUG - ---------------------------------------}
+2025-01-25 17:52:58,484 - INFO - 127.0.0.1 - - [25/Jan/2025 17:52:58] "POST /get-note/WAeLSpIAFYqZvxA9JcgWYg HTTP/1.1" 200 -
+2025-01-25 17:53:04,407 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:53:04,407 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:04] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:53:04,469 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:53:04,555 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:04] "GET /get-secret HTTP/1.1" 200 -
+2025-01-25 17:53:04,615 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:53:04,615 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:53:04,615 - DEBUG - ---------------------------------------}
+2025-01-25 17:53:04,615 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:04] "POST /view-notes HTTP/1.1" 200 -
+2025-01-25 17:53:06,721 - DEBUG - ---rEVOKE SHARE LINK API---
+2025-01-25 17:53:06,721 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:53:06,721 - DEBUG - ---------------------------------------}
+2025-01-25 17:53:06,721 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:06] "POST /revoke-link HTTP/1.1" 200 -
+2025-01-25 17:53:07,824 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:53:07,824 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:07] "GET /view-notes HTTP/1.1" 200 -
+2025-01-25 17:53:07,870 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:53:07,947 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:07] "GET /get-secret HTTP/1.1" 200 -
+2025-01-25 17:53:08,017 - DEBUG - ---VIEW NOTE API---
+2025-01-25 17:53:08,017 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:53:08,017 - DEBUG - ---------------------------------------}
+2025-01-25 17:53:08,017 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:08] "POST /view-notes HTTP/1.1" 200 -
+2025-01-25 17:53:10,783 - DEBUG - ---CREATE TEMP LINK API---
+2025-01-25 17:53:10,783 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:53:10,783 - DEBUG - [DEBUG] Client public key: 17
+2025-01-25 17:53:10,783 - DEBUG - [DEBUG] Server public key: 16
+2025-01-25 17:53:10,783 - DEBUG - [DEBUG] Server prviate key: 8
+2025-01-25 17:53:10,783 - DEBUG - [DEBUG] Shared Secret: 18
+2025-01-25 17:53:10,783 - DEBUG - [DEBUG] Session Key: 4ec9599fc203d176a301536c2e091a19bc852759b255bd6818810a42c5fed14a
+2025-01-25 17:53:10,783 - DEBUG - ---------------------------------------}
+2025-01-25 17:53:10,783 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:10] "POST /create-temp-link HTTP/1.1" 200 -
+2025-01-25 17:53:14,156 - DEBUG - ---SHARE NOTE API---
+2025-01-25 17:53:14,156 - DEBUG - [DEBUG] METHOD = GET
+2025-01-25 17:53:14,173 - DEBUG - ---------------------------------------}
+2025-01-25 17:53:14,173 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:14] "GET /share/I7lYDfNlw9PoJjVsV4y-zg HTTP/1.1" 200 -
+2025-01-25 17:53:14,248 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:14] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:53:16,029 - DEBUG - ---GET SHARE NOTE API---
+2025-01-25 17:53:16,029 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:53:16,029 - DEBUG - [DEBUG] Client public key: 17
+2025-01-25 17:53:16,029 - DEBUG - [DEBUG] Server prviate key: 8
+2025-01-25 17:53:16,029 - DEBUG - [DEBUG] Shared Secret: 18
+2025-01-25 17:53:16,029 - DEBUG - [DEBUG] Session Key: 4ec9599fc203d176a301536c2e091a19bc852759b255bd6818810a42c5fed14a
+2025-01-25 17:53:16,029 - DEBUG - [DEBUG] Encrypted content: b'e\xdf\xa0E\x88\xc1\xd7\xe5\xf0t\xef~\x84\xe8\xbaE'
+2025-01-25 17:53:16,029 - DEBUG - ---------------------------------------}
+2025-01-25 17:53:16,029 - INFO - 127.0.0.1 - - [25/Jan/2025 17:53:16] "POST /get-note/I7lYDfNlw9PoJjVsV4y-zg HTTP/1.1" 200 -
+2025-01-25 17:54:11,120 - INFO -  * Detected change in 'D:\\HCMUS\\NMmahoa_matma\\MHMM-Lab2\\server\\server.py', reloading
+2025-01-25 17:54:11,185 - INFO -  * Restarting with stat
+2025-01-25 17:54:11,723 - WARNING -  * Debugger is active!
+2025-01-25 17:54:11,731 - INFO -  * Debugger PIN: 141-791-563
+2025-01-25 17:54:16,962 - DEBUG - ---CREATE TEMP LINK API---
+2025-01-25 17:54:16,962 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:54:16,962 - DEBUG - [DEBUG] Client public key: 17
+2025-01-25 17:54:16,962 - DEBUG - [DEBUG] Server public key: 1
+2025-01-25 17:54:16,962 - DEBUG - [DEBUG] Server prviate key: 0
+2025-01-25 17:54:16,962 - DEBUG - [DEBUG] Shared Secret: 1
+2025-01-25 17:54:16,962 - DEBUG - [DEBUG] Session Key: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+2025-01-25 17:54:16,962 - DEBUG - ---------------------------------------}
+2025-01-25 17:54:16,962 - INFO - 127.0.0.1 - - [25/Jan/2025 17:54:16] "POST /create-temp-link HTTP/1.1" 200 -
+2025-01-25 17:54:20,423 - DEBUG - ---SHARE NOTE API---
+2025-01-25 17:54:20,423 - DEBUG - [DEBUG] METHOD = GET
+2025-01-25 17:54:20,438 - DEBUG - ---------------------------------------}
+2025-01-25 17:54:20,438 - INFO - 127.0.0.1 - - [25/Jan/2025 17:54:20] "GET /share/128NzEuoH5UhaRNXE2NCWg HTTP/1.1" 200 -
+2025-01-25 17:54:20,566 - INFO - 127.0.0.1 - - [25/Jan/2025 17:54:20] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-01-25 17:54:22,185 - DEBUG - ---GET SHARE NOTE API---
+2025-01-25 17:54:22,185 - DEBUG - [DEBUG] METHOD = POST
+2025-01-25 17:54:22,185 - DEBUG - [DEBUG] Client public key: 17
+2025-01-25 17:54:22,185 - DEBUG - [DEBUG] Server prviate key: 0
+2025-01-25 17:54:22,185 - DEBUG - [DEBUG] Shared Secret: 1
+2025-01-25 17:54:22,185 - DEBUG - [DEBUG] Session Key: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+2025-01-25 17:54:22,185 - DEBUG - [DEBUG] Encrypted content: b'>\xdd\xbd\xaf\x9e\xf5\x988\x03\x8d\xb4,\xb8f\xb3\x91'
+2025-01-25 17:54:22,185 - DEBUG - ---------------------------------------}
+2025-01-25 17:54:22,200 - INFO - 127.0.0.1 - - [25/Jan/2025 17:54:22] "POST /get-note/128NzEuoH5UhaRNXE2NCWg HTTP/1.1" 200 -

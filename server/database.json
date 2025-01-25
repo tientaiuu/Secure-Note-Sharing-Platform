@@ -45,6 +45,18 @@
             "expiry": 1737798044,
             "session_key": "4ec9599fc203d176a301536c2e091a19bc852759b255bd6818810a42c5fed14a",
             "server_public_key": 16
+        },
+        "I7lYDfNlw9PoJjVsV4y-zg": {
+            "note_id": "IZcVQgXS",
+            "expiry": 1737803050,
+            "session_key": "4ec9599fc203d176a301536c2e091a19bc852759b255bd6818810a42c5fed14a",
+            "server_public_key": 16
+        },
+        "128NzEuoH5UhaRNXE2NCWg": {
+            "note_id": "kPmy0Tgs",
+            "expiry": 1737802516,
+            "session_key": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+            "server_public_key": 1
         }
     },
     "KEYS": {
@@ -61,6 +73,11 @@
         "3g2VLeR9": {
             "server_private_key": 5,
             "server_public_key": 20,
+            "client_public_key": 17
+        },
+        "kPmy0Tgs": {
+            "server_private_key": 0,
+            "server_public_key": 1,
             "client_public_key": 17
         }
     }

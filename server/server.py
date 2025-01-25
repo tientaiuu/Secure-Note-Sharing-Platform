@@ -332,8 +332,7 @@ def get_shared_note(token):
     
     return jsonify({
         "encrypted_note": encrypted_new_content,
-        "server_public_key": key_info["server_public_key"],
-        "content":decrypted_note
+        "server_public_key": key_info["server_public_key"]
     })
 
 @app.route("/revoke-link", methods=["POST"])
