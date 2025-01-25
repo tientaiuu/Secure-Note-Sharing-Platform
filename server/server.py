@@ -5,15 +5,22 @@ import secrets, time, json, os, hashlib, base64, logging
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad, pad
 
-log_file_path = r'server/testing'
+# Lấy đường dẫn tuyệt đối đến thư mục hiện tại
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
-if not os.path.exists(log_file_path):
-    os.makedirs(log_file_path)
+# Đường dẫn tuyệt đối đến thư mục 'server/testing'
+log_directory = os.path.join(current_dir, 'test')
 
+# Tạo thư mục nếu chưa tồn tại
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
 
-# Cấu hình logging để ghi vào file
+# Đường dẫn tuyệt đối đến tệp log
+log_file = os.path.join(log_directory, 'app_debug.log')
+
+# Cấu hình logging
 logging.basicConfig(
-    filename="app_debug.log",  # Đặt tên file log
+    filename=log_file,  # Sử dụng đường dẫn tuyệt đối
     level=logging.DEBUG,  # Ghi lại tất cả thông tin từ DEBUG trở lên
     format='%(asctime)s - %(levelname)s - %(message)s',
     filemode='a'
