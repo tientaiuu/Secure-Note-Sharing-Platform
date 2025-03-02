@@ -3,6 +3,6 @@ Cách chạy code:
 python server/server.py
 ```
 Web được chạy ở `http://localhost:5000/`
+Video:
 
-<video src="test/test-video.mkv" width="320" height="240" controls></video>
-
+  [https://youtu.be/4skx2k6eSAk](https://youtu.be/4skx2k6eSAk)
